@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 public class Program
@@ -8,8 +9,9 @@ public class Program
     public static Task Main(string[] args) => new Program().MainAsync();
 
     private DiscordSocketClient _client;
+    private readonly IConfiguration _config;
 
-    public async Task MainAsync()
+    public Program()
     {
         _client = new DiscordSocketClient();
 
@@ -17,10 +19,15 @@ public class Program
         _client.Ready += ClientReady;
         _client.SlashCommandExecuted += SlashCommandHandler;
 
-        // INSECURED
-        var token = "MTE1Mjc3MTcwMjQ4OTYyODY4Mg.GhQEDZ.r6QeCRDK2zENuCK5wC9gzIAxG-bcGajXOVabpw";
+        var _builder = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile(path: "config.json");
+        _config = _builder.Build();
+    }
 
-        await _client.LoginAsync(TokenType.Bot, token);
+    public async Task MainAsync()
+    {
+        await _client.LoginAsync(TokenType.Bot, _config["token"]);
         await _client.StartAsync();
 
         await Task.Delay(-1);
