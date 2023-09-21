@@ -1,24 +1,22 @@
 ﻿using Discord;
+using Discord.Interactions;
 using Discord.Net;
 using Discord.WebSocket;
+using HumansCompanion.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 public class Program
 {
-    public static Task Main(string[] args) => new Program().MainAsync();
-
-    private DiscordSocketClient _client;
     private readonly IConfiguration _config;
+    private DiscordSocketClient _client;
+    private InteractionService _commands;
+
+    public static Task Main(string[] args) => new Program().MainAsync();
 
     public Program()
     {
-        _client = new DiscordSocketClient();
-
-        _client.Log += Log;
-        _client.Ready += ClientReady;
-        _client.SlashCommandExecuted += SlashCommandHandler;
-
         var _builder = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile(path: "config.json");
@@ -27,10 +25,24 @@ public class Program
 
     public async Task MainAsync()
     {
-        await _client.LoginAsync(TokenType.Bot, _config["token"]);
-        await _client.StartAsync();
+        using (var services = ConfigureServices())
+        {
+            var client = services.GetRequiredService<DiscordSocketClient>();
+            var commands = services.GetRequiredService<InteractionService>();
+            _client = client;
+            _commands = commands;
 
-        await Task.Delay(-1);
+            client.Log += Log;
+            commands.Log += Log;
+            client.Ready += ClientReadyAsync;
+
+            await _client.LoginAsync(TokenType.Bot, _config["token"]);
+            await _client.StartAsync();
+
+            await services.GetRequiredService<CommandHandler>().InitializeAsync();
+
+            await Task.Delay(Timeout.Infinite);
+        }
     }
 
     private Task Log(LogMessage msg)
@@ -39,47 +51,41 @@ public class Program
         return Task.CompletedTask;
     }
 
-    private async Task SlashCommandHandler(SocketSlashCommand command)
+    public async Task ClientReadyAsync()
     {
-        switch (command.Data.Name) 
+
+        if (IsDebug())
         {
-            case "time":
-                await HandleTimeCommand(command);
-                break;
-            default:
-                await command.RespondAsync($"You executed {command.Data.Name}");
-                break;
+            var testGuildId = ulong.Parse(_config["testGuildId"]);
+            // this is where you put the id of the test discord guild
+            System.Console.WriteLine($"In debug mode, adding commands to {testGuildId}...");
+            await _commands.RegisterCommandsToGuildAsync(testGuildId);
         }
+        else
+        {
+            // this method will add commands globally, but can take around an hour
+            await _commands.RegisterCommandsGloballyAsync(true);
+        }
+
+        Console.WriteLine($"Connected as -> [{_client.CurrentUser}] :)");
     }
 
-    public async Task HandleTimeCommand(SocketSlashCommand command)
+    private ServiceProvider ConfigureServices()
     {
-        await command.RespondAsync($"{TimeZoneInfo.Local}\t{DateTime.Now}", ephemeral: true);
+        return new ServiceCollection()
+            .AddSingleton(_config)
+            .AddSingleton<DiscordSocketClient>()
+            .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+            .AddSingleton<CommandHandler>()
+            .BuildServiceProvider();
     }
 
-    public async Task ClientReady()
+    static bool IsDebug()
     {
-        ulong guildId = 823689180571893830;
-        var guild = _client.GetGuild(guildId);
-
-        var guildCommand = new SlashCommandBuilder();
-        guildCommand.WithName("time");
-        guildCommand.WithDescription("Display local time.");
-
-        var globalCommand = new SlashCommandBuilder();
-        globalCommand.WithName("first-global-command");
-        globalCommand.WithDescription("First global slash command.");
-
-        try
-        {
-            await guild.CreateApplicationCommandAsync(guildCommand.Build());
-            await _client.CreateGlobalApplicationCommandAsync(globalCommand.Build());
-        }
-        catch (HttpException exception)
-        {
-            var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
-            Console.WriteLine(json);
-        }
-        
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
     }
 }
