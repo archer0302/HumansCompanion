@@ -1,11 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.Net;
 using Discord.WebSocket;
 using HumansCompanion.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 public class Program
 {
