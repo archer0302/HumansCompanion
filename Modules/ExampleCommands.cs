@@ -16,12 +16,13 @@ namespace HumansCompanion.Modules
         [SlashCommand("8ball", "find your answer!")]
         public async Task EightBall(string question)
         {
-            var replies = new List<string>();
-
-            replies.Add("yes");
-            replies.Add("no");
-            replies.Add("maybe");
-            replies.Add("hazzzzy....");
+            var replies = new List<string>
+            {
+                "yes",
+                "no",
+                "maybe",
+                "hazzzzy...."
+            };
 
             // get the answer
             var answer = replies[new Random().Next(replies.Count - 1)];

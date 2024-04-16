@@ -5,11 +5,13 @@ using HumansCompanion.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+namespace HumansCompanion;
+
 public class Program
 {
     private readonly IConfiguration _config;
-    private DiscordSocketClient _client;
-    private InteractionService _commands;
+    private DiscordSocketClient? _client;
+    private InteractionService? _commands;
 
     public static Task Main(string[] args) => new Program().MainAsync();
 
@@ -17,7 +19,7 @@ public class Program
     {
         var _builder = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile(path: "config.json");
+            .AddJsonFile("config.json");
         _config = _builder.Build();
     }
 
@@ -56,7 +58,7 @@ public class Program
         {
             var testGuildId = ulong.Parse(_config["testGuildId"]);
             // this is where you put the id of the test discord guild
-            System.Console.WriteLine($"In debug mode, adding commands to {testGuildId}...");
+            Console.WriteLine($"In debug mode, adding commands to {testGuildId}...");
             await _commands.RegisterCommandsToGuildAsync(testGuildId);
         }
         else
@@ -83,7 +85,7 @@ public class Program
 #if DEBUG
         return true;
 #else
-        return false;
+    return false;
 #endif
     }
 }

@@ -93,26 +93,7 @@ namespace HumansCompanion.Services
         {
             if (!result.IsSuccess)
             {
-                switch (result.Error)
-                {
-                    case InteractionCommandError.UnmetPrecondition:
-                        // implement
-                        break;
-                    case InteractionCommandError.UnknownCommand:
-                        // implement
-                        break;
-                    case InteractionCommandError.BadArgs:
-                        // implement
-                        break;
-                    case InteractionCommandError.Exception:
-                        // implement
-                        break;
-                    case InteractionCommandError.Unsuccessful:
-                        // implement
-                        break;
-                    default:
-                        break;
-                }
+                Console.WriteLine(result.ErrorReason);
             }
 
             return Task.CompletedTask;
