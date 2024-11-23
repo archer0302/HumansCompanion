@@ -53,13 +53,18 @@ public class Program
 
     public async Task ClientReadyAsync()
     {
-
-        if (IsDebug())
+        if (_client == null || _commands == null)
         {
-            var testGuildId = ulong.Parse(_config["testGuildId"]);
+            throw new ArgumentNullException("Client or CommandService is null");
+        }
+
+        var guildId = _config["guildId"]; 
+
+        if (IsDebug() && !string.IsNullOrEmpty(guildId))
+        {
             // this is where you put the id of the test discord guild
-            Console.WriteLine($"In debug mode, adding commands to {testGuildId}...");
-            await _commands.RegisterCommandsToGuildAsync(testGuildId);
+            Console.WriteLine($"In debug mode, adding commands to {guildId}...");
+            await _commands.RegisterCommandsToGuildAsync(ulong.Parse(guildId));
         }
         else
         {
