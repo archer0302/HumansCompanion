@@ -56,7 +56,7 @@ namespace HumansCompanion.Modules.Commands
             {
                 ImageUrl = $"attachment://{fileName}"
             }.Build();
-            await Context.Channel.SendFileAsync(imgStream, fileName, "", false, embed);
+            await Context.Channel.SendFileAsync(imgStream, fileName, $"by {Context.User.Username}", false, embed);
         }
     }
 }
