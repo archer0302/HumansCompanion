@@ -49,4 +49,26 @@ public class AWSS3BucketService
             return false;
         }
     }
+
+    public async Task<Stream> GetObjectStream(string bucketName, string objectName)
+    {
+        // Create a GetObject request
+        var request = new GetObjectRequest
+        {
+            BucketName = bucketName,
+            Key = objectName,
+        };
+
+        // Issue request and remember to dispose of the response
+        GetObjectResponse response = await client.GetObjectAsync(request);
+
+        if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+        {
+            return response.ResponseStream;
+        }
+        else
+        {
+            throw new ArgumentException($"Getting object {objectName} failed.");
+        }
+    }
 }

@@ -48,7 +48,15 @@ namespace HumansCompanion.Modules.Commands
         [SlashCommand("meme", "Show a meme.")]
         public async Task Meme(string name)
         {
-            
+            var stream = await awsS3BucketService.GetObjectStream(bucketName, name);
+            var binaryArray = new BinaryReader(stream).ReadBytes((int)stream.Length);
+            using MemoryStream imgStream = new(binaryArray);
+            var fileName = "image.png";
+            var embed = new EmbedBuilder()
+            {
+                ImageUrl = $"attachment://{fileName}"
+            }.Build();
+            await Context.Channel.SendFileAsync(imgStream, fileName, "", false, embed);
         }
     }
 }
