@@ -82,6 +82,7 @@ public class Program
             .AddSingleton<DiscordSocketClient>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<CommandHandler>()
+            .AddSingleton<AWSS3BucketService>()
             .BuildServiceProvider();
     }
 
