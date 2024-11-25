@@ -7,12 +7,6 @@ namespace HumansCompanion.Modules.Commands
     public class MemeCommand : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly string bucketName = "meme-storage-asdf";
-        private readonly Dictionary<string, string> supportedImageTypes = new Dictionary<string, string>
-        {
-            { "image/jpeg", "jpg" },
-            { "image/png", "png" },
-            { "image/gif", "gif" },
-        };
         public InteractionService Commands { get; set; }
         private readonly CommandHandler _handler;
         private readonly AWSS3BucketService awsS3BucketService;
@@ -24,7 +18,7 @@ namespace HumansCompanion.Modules.Commands
             this.awsS3BucketService = awsS3BucketService;
         }
 
-        [SlashCommand("addmeme", "Add a new meme. Use `file:` to upload image. Supports jpg, png and gif.")]
+        [SlashCommand("addmeme", "Add a new meme. Use `file:` to upload image.")]
         public async Task AddMeme(string name, IAttachment? attachment = null)
         {
             var result = false;
@@ -32,7 +26,6 @@ namespace HumansCompanion.Modules.Commands
             {
                 try
                 {
-                    name = $"{name}.{GetExtensionFromAttachmentContentType(attachment.ContentType)}";
                     result = await awsS3BucketService.UploadAttachment(attachment, bucketName, name);
                 }
                 catch (Exception ex)
@@ -52,16 +45,10 @@ namespace HumansCompanion.Modules.Commands
             }
         }
 
-        private string GetExtensionFromAttachmentContentType(string contentType)
+        [SlashCommand("meme", "Show a meme.")]
+        public async Task Meme(string name)
         {
-            if (supportedImageTypes.TryGetValue(contentType, out var extension))
-            {
-                return extension;
-            }
-            else
-            {
-                throw new ArgumentException($"Content type of {contentType} is not supported.");
-            }
+            
         }
     }
 }
