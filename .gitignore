@@ -4,3 +4,4 @@ bin
 obj
 *.json
 .idea
+.DS_Store
